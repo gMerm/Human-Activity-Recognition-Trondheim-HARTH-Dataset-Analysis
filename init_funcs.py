@@ -46,5 +46,14 @@ def get_label_stats(frame):
     print("Percentages of each label:")
     print(percentages)
 
+def drop_columns(data):
+    for i in range(len(data)):
+        data[i]=data[i].dropna()
+        data[i]=data[i].drop(columns=['timestamp'])
+        if "Unnamed: 0" in data[i].columns:
+            data[i]=data[i].drop(columns=['Unnamed: 0'])
+        if "index" in data[i].columns:
+            data[i]=data[i].drop(columns=['index'])
+    return data
     
     
