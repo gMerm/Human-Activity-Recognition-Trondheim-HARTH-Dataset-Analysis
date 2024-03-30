@@ -6,7 +6,6 @@ import os
 import sys
 
 
-
 #ask user if he wants to run the program
 def ask(message):
     while True:
@@ -20,10 +19,9 @@ def ask(message):
 
 if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the program?"):
 
-    # Read data
+    #read data
     file_paths = ["harth/S006.csv", "harth/S008.csv", "harth/S009.csv", "harth/S010.csv", "harth/S012.csv", "harth/S013.csv", "harth/S014.csv", "harth/S015.csv", "harth/S016.csv", "harth/S017.csv", "harth/S018.csv", "harth/S019.csv", "harth/S020.csv", "harth/S021.csv", "harth/S022.csv", "harth/S023.csv", "harth/S024.csv", "harth/S025.csv", "harth/S026.csv", "harth/S027.csv", "harth/S028.csv", "harth/S029.csv"]
     #file_paths = ["harth/S006.csv"]
-    print()
     dfs = []
 
     #exclude collunns from .csv files (files 15,21,23 include 1 collumn that isn't needed)

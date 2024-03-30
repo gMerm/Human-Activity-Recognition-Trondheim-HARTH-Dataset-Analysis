@@ -3,7 +3,7 @@ import pandas as pd
 #dictionary to store activity codes and their respective top 2 features
 activity_features = {}
 
-#open file to read
+#open file to read & find the top 3 features for every activity code
 with open('activity_code_results.txt', 'r') as f:
     lines = f.readlines()
     i = 0
