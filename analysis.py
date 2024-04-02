@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 import sys
+import numpy as np
 
 
 #ask user if he wants to run the program
@@ -39,6 +40,62 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
         dfs.append(df)
 
 
+    concatenated_df = pd.concat(dfs)
+
+    sample_size = 10000
+    random_indices = np.random.choice(concatenated_df.shape[0], sample_size, replace=False)
+    sampled_df = concatenated_df.iloc[random_indices]
+
+    #pairplot to visualize relationships between features & labels
+    features_subset1 = ['back_x', 'back_y', 'back_z']
+    features_subset2 = ['thigh_x', 'thigh_y', 'thigh_z']
+
+    sns.pairplot(sampled_df, hue='label', markers='.', vars=features_subset1, palette='Set2')
+    plt.suptitle('Pair Plot - Features Subset 1', y=1.02)
+    plt.show()
+
+    sns.pairplot(sampled_df, hue='label', markers='.', vars=features_subset2, palette='Set2')
+    plt.suptitle('Pair Plot - Features Subset 2', y=1.02)
+    plt.show()
+
+    #scatterplot plots for feature - label
+    fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+
+    sns.scatterplot(data=sampled_df, x='back_x', y='label', ax=axes[0][0])
+    axes[0][1].set_title('back_x')
+
+    
+    sns.scatterplot(data=sampled_df, x='back_y', y='label', ax=axes[0][1])
+    axes[0][1].set_title('back_y')
+
+    sns.scatterplot(data=sampled_df, x='back_z', y='label', ax=axes[0][2])
+    axes[0][2].set_title('back_z')
+
+    sns.scatterplot(data=sampled_df, x='thigh_x', y='label', ax=axes[1][0])
+    axes[1][1].set_title('thigh_x')
+
+    
+    sns.scatterplot(data=sampled_df, x='thigh_y', y='label', ax=axes[1][1])
+    axes[1][1].set_title('thigh_y')
+
+    sns.scatterplot(data=sampled_df, x='thigh_z', y='label', ax=axes[1][2])
+    axes[1][2].set_title('thigh_z')
+
+    plt.tight_layout()
+    plt.show()
+
+    fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+    features = ['back_x', 'back_y', 'back_z', 'thigh_x', 'thigh_y', 'thigh_z']
+
+    for i, feature in enumerate(features):
+        sns.violinplot(data=sampled_df, x='label', y=feature, ax=axes[i // 3, i % 3])
+        axes[i // 3, i % 3].set_title(feature)
+
+    plt.tight_layout()
+    plt.show()
+
+    print('eftasa edw')
+
     # Descriptive analysis
     #count = number of non-null values in each coll
     #mean = average value of each coll
@@ -50,8 +107,10 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
     #max: maximum value in each coll
         
     #if file already exists drop it
+    '''
     if os.path.exists("activity_code_results.txt"):
         os.remove("activity_code_results.txt")
+    '''
 
     with open('activity_code_results.txt', 'w') as f:
         for i, df in enumerate(dfs):
@@ -108,6 +167,9 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
 
 
             #time.sleep(3);
+                
+
+
 
 
 

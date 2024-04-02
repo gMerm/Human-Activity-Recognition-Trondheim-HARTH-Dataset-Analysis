@@ -28,56 +28,61 @@ for file in file_paths:
     if 'timestamp' in df.columns:
         df.drop(columns=['timestamp'], inplace=True)
 
+
 #PART 2 - CREATE THE COMPLETE DATASET THAT WILL BE USED
 #concatenate the dataframes to create a whole dataset for the random forests
 concatenated_df = pd.concat(dfs)
 
 
-
-#PART 3 - v1: contain rows for every activity code based on their frequency
-'''
-sampled_df = pd.DataFrame()
-total_samples = 10000
-activity_counts = concatenated_df['label'].value_counts(normalize=True) * total_samples
-
-for activity_code, count in activity_counts.items():
-    df_activity = concatenated_df[concatenated_df['label'] == activity_code]
-    num_samples = min(int(count), len(df_activity))
-    sampled_subset = df_activity.sample(n=num_samples, random_state=42, replace=True)
-    sampled_df = pd.concat([sampled_df, sampled_subset])
-
-#sampled_df.to_csv('sampled_dataset.csv', index=False)
-
-sampled_df = sampled_df.sample(frac=1, random_state=42)
-'''
-
-#PART 3 - v2: contain rows for every activity code randmoly, same number of each activity number
+#PART 3 - v1: contain rows for every activity code randmoly, same number of each activity number
 '''
 sampled_df = pd.DataFrame()
 for activity_code in concatenated_df['label'].unique():
     df_activity = concatenated_df[concatenated_df['label'] == activity_code]
-    sampled_subset = df_activity.sample(n=850, random_state=42, replace=True)  
+    sampled_subset = df_activity.sample(n=2500, random_state=42, replace=True)  
     sampled_df = pd.concat([sampled_df, sampled_subset])
+
+if 'label' in sampled_df.columns:
+        sampled_df.drop(columns=['label'], inplace=True)
+
+#PART 3 - v2: contain rows for every activity code randmoly
 '''
 
-#PART 3 - v3: randomly select rows from the whole dataset
+#PART 3 - v3: randomly select rows from the whole dataset (more than 50000 gets killed)
 sample_size = 10000
 random_indices = np.random.choice(concatenated_df.shape[0], sample_size, replace=False)
 sampled_df = concatenated_df.iloc[random_indices]
 
+sampled_df = sampled_df.drop(columns=['label'])
+
+
+
+
+
+#apply weights to the features that affect the label the most
+#based on analysis.py, parse.py, best features are thigh_x, back_y, thigh_y
+#back_x, back_y, back_z,thigh_x,thigh_y,thigh_z (these are the turns)
+feature_weights = [10, 100, 10, 100, 50, 10]
+X_weighted = sampled_df * feature_weights
+
 #PART 4 - Standardization
 #Standardize features to ensure that each feature has a mean of 0 and a standard deviation of 1.
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(sampled_df)
+X_scaled = scaler.fit_transform(X_weighted)
+
+X_scaled_df = pd.DataFrame(X_scaled, columns=sampled_df.columns)
+X_scaled_df.to_csv('sampled_dataset.csv', index=False)
+
 
 
 #PART 5 - Apply algorithms
-#k-means
-kmeans = KMeans(n_clusters=12, random_state=42)
+#k-means (3,6,9,10 is best) - (9,10 the best)
+n_clusters=10
+kmeans = KMeans(n_clusters, random_state=42)
 kmeans_labels = kmeans.fit_predict(X_scaled)
 
 #agglomerative
-hierarchical = AgglomerativeClustering(n_clusters=12)
+hierarchical = AgglomerativeClustering(n_clusters)
 hierarchical_labels = hierarchical.fit_predict(X_scaled)
 
 
