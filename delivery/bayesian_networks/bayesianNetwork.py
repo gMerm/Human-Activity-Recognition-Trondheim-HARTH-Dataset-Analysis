@@ -1,78 +1,52 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from pgmpy.models import BayesianNetwork
-from pgmpy.estimators import ParameterEstimator
-from pgmpy.inference import VariableElimination
-from sklearn.metrics import classification_report, accuracy_score
-from pgmpy.estimators import BayesianEstimator
-from pgmpy.estimators import MaximumLikelihoodEstimator
-import time
-
-file_paths = ["harth/S006.csv", "harth/S008.csv", "harth/S009.csv", "harth/S010.csv", "harth/S012.csv", "harth/S013.csv", "harth/S014.csv", "harth/S015.csv", "harth/S016.csv", "harth/S017.csv", "harth/S018.csv", "harth/S019.csv", "harth/S020.csv", "harth/S021.csv", "harth/S022.csv", "harth/S023.csv", "harth/S024.csv", "harth/S025.csv", "harth/S026.csv", "harth/S027.csv", "harth/S028.csv", "harth/S029.csv"]
-dfs = []
-
-#PART 1 - CLEAN THE DATA
-#exclude collunns from .csv files (files 15,21,23 include 1 collumn that isn't needed)
-for file in file_paths:
-    #read .csv file
-    df = pd.read_csv(file)
-    
-    #exclude unwanted columns if they exist in the .csv file
-    if 'index' in df.columns:
-        df.drop(columns=['index'], inplace=True)
-    elif 'Unnamed: 0' in df.columns:
-        df.drop(columns=['Unnamed: 0'], inplace=True)
-    
-    #append df to list
-    dfs.append(df)
-
-    #drop timestamp collumn
-    if 'timestamp' in df.columns:
-        df.drop(columns=['timestamp'], inplace=True)
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.decomposition import PCA
 
 
-#read the concatenated dataset
-concatenated_df = pd.concat(dfs)
+import sys
+sys.path.append("..")
+from init_funcs import *
 
-#PART 2 - CREATE THE COMPLETE DATASET THAT WILL BE USED
-#prepare data for classification
-X = concatenated_df.drop(columns=['label'])
-y = concatenated_df['label']
+file_paths = ["harth/S006.csv", "harth/S008.csv", "harth/S009.csv", "harth/S010.csv", "harth/S012.csv",
+              "harth/S013.csv", "harth/S014.csv", "harth/S015.csv", "harth/S016.csv", "harth/S017.csv",
+              "harth/S018.csv", "harth/S019.csv", "harth/S020.csv", "harth/S021.csv", "harth/S022.csv",
+              "harth/S023.csv", "harth/S024.csv", "harth/S025.csv", "harth/S026.csv", "harth/S027.csv",
+              "harth/S028.csv", "harth/S029.csv"]
 
-#split data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+activity_labels = {
+    1: 'walking', 2: 'running', 3: 'shuffling', 4: 'stairs (ascending)',
+    5: 'stairs (descending)', 6: 'standing', 7: 'sitting', 8: 'lying',
+    13: 'cycling (sit)', 14: 'cycling (stand)', 130: 'cycling (sit, inactive)',
+    140: 'cycling (stand, inactive)'
+}
 
+# DATA PREPROCESSING
+print("Bayesian Network")
+print("Loading Data...")
+files = list_files()
+files.sort()
+print("Total Number of files:", len(files))
+data = read_files(files)
+data = drop_columns(data)
+print("Data Loaded")
 
-bayesian_model = BayesianNetwork([
-    ('back_x', 'label'),
-    ('back_y', 'label'),
-    ('back_z', 'label'),
-    ('thigh_x', 'label'),
-    ('thigh_y', 'label'),
-    ('thigh_z', 'label'),
-])
-
-#PART 3 - CLASSIFIER
-#train the Bayesian Network
-start_time = time.time()
-
-bayesian_model.fit(X_train.join(y_train))
-
-
-end_time = time.time()
-
-training_time = end_time - start_time
-
+#concatenate all the dataframes in the list
+full_df = pd.concat(data, ignore_index=True)
+print("Number of lines in full_df:", len(full_df))
 
 
-#PART 4 - INFERENCE
-inference = VariableElimination(bayesian_model)
-y_pred = []
-for index, row in X_test.iterrows():
-    query = inference.map_query(variables=['label'], evidence=row.to_dict())
-    y_pred.append(query['label'])
+X = full_df.drop('label', axis=1)
+y = full_df['label']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-#results
-print("Training Time:", training_time, "seconds")
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print("\nClassification Report:\n", classification_report(y_test, y_pred))
+# MODEL TRAINING
+nb_classifier = GaussianNB(var_smoothing=1e-9)
+nb_classifier.fit(X_train, y_train)
+y_pred = nb_classifier.predict(X_test)
+
+
+# ACCURACY
+accuracy = accuracy_score(y_test, y_pred)
+print("Test Accuracy:", accuracy)
