@@ -41,16 +41,26 @@ print("Data Standardized")
 
 
 #APPLICATION OF THE ALGORITHMS
-n_clusters=6
-kmeans = KMeans(n_clusters)
+n_clusters=7 # number of clusters
+n_init=10 # number of times the k-means algorithm will be run with different centroid seeds
+kmeans = KMeans(n_clusters, n_init=n_init, random_state=42)
 kmeans_labels = kmeans.fit_predict(X_scaled)
 print("K-Means Clustering Complete")
+print(f"Centroids: {kmeans.cluster_centers_}")
+print(f"Inertia: {kmeans.inertia_}") 
+print(f"Distance: {kmeans.n_iter_}") 
+print(f"David Bouldin Index: {davies_bouldin_score(X_scaled, kmeans_labels)}") 
+# print("Calculating Silhouette Score")
+# print(f"Silhouette Score: {silhouette_score(X_scaled, kmeans_labels)}")
 
 # https://scikit-learn.org/stable/modules/mixture.html
 gmm = GaussianMixture(n_components=n_clusters)
 gmm.fit(X_scaled)
 gmm_labels = gmm.predict(X_scaled)
 print("Gaussian Mixture Model (GMM) Clustering Complete")
+print(f"David Bouldin Index: {davies_bouldin_score(X_scaled, gmm_labels)}") 
+# print(f"Silhouette Score: {silhouette_score(X_scaled, gmm_labels)}") 
+print(f"Bayes Information Criterion: {gmm.bic(X_scaled)}")
 
 
 
