@@ -6,7 +6,6 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score, davies_bouldin_score
-from scipy.cluster.hierarchy import linkage, dendrogram
 import matplotlib.pyplot as plt
 import numpy as np
 

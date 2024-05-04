@@ -2,18 +2,12 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.decomposition import PCA
+
 
 
 import sys
 sys.path.append("..")
 from init_funcs import *
-
-file_paths = ["harth/S006.csv", "harth/S008.csv", "harth/S009.csv", "harth/S010.csv", "harth/S012.csv",
-              "harth/S013.csv", "harth/S014.csv", "harth/S015.csv", "harth/S016.csv", "harth/S017.csv",
-              "harth/S018.csv", "harth/S019.csv", "harth/S020.csv", "harth/S021.csv", "harth/S022.csv",
-              "harth/S023.csv", "harth/S024.csv", "harth/S025.csv", "harth/S026.csv", "harth/S027.csv",
-              "harth/S028.csv", "harth/S029.csv"]
 
 activity_labels = {
     1: 'walking', 2: 'running', 3: 'shuffling', 4: 'stairs (ascending)',
@@ -50,3 +44,8 @@ y_pred = nb_classifier.predict(X_test)
 # ACCURACY
 accuracy = accuracy_score(y_test, y_pred)
 print("Test Accuracy:", accuracy)
+
+# CLASSIFICATION REPORT
+report = classification_report(y_test, y_pred, zero_division=1)
+print("Classification Report:")
+print(report)

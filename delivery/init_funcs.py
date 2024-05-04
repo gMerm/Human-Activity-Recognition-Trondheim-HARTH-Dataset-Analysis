@@ -39,6 +39,14 @@ def read_files(files,path=default_path):
         data.append(pd.read_csv(file))
     return data
 
+# This Function fixes the labels to match numerically the activities
+def fix_labels(data: pd.DataFrame):
+    data['label'] = data['label'].replace(13, 9)
+    data['label'] = data['label'].replace(14, 10)
+    data['label'] = data['label'].replace(130, 11)
+    data['label'] = data['label'].replace(140, 12)
+    return data
+
 # This Function returns the showing percentage of the labels
 def get_label_stats(frame):
     label_count = frame['label'].value_counts()

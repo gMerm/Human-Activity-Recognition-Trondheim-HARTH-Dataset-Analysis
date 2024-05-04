@@ -1,8 +1,6 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import time
-import os
 import sys
 import numpy as np
 
@@ -18,14 +16,14 @@ def ask(message):
         else:
             print("Invalid input. Please enter 'y' for yes or 'n' for no.")
 
+# if user wants to run the program
 if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the program?"):
 
-    #read data
+    # READ DATA
     file_paths = ["harth/S006.csv", "harth/S008.csv", "harth/S009.csv", "harth/S010.csv", "harth/S012.csv", "harth/S013.csv", "harth/S014.csv", "harth/S015.csv", "harth/S016.csv", "harth/S017.csv", "harth/S018.csv", "harth/S019.csv", "harth/S020.csv", "harth/S021.csv", "harth/S022.csv", "harth/S023.csv", "harth/S024.csv", "harth/S025.csv", "harth/S026.csv", "harth/S027.csv", "harth/S028.csv", "harth/S029.csv"]
-    #file_paths = ["harth/S006.csv"]
     dfs = []
 
-    #exclude collunns from .csv files (files 15,21,23 include 1 collumn that isn't needed)
+    print("Loading Data...")
     for file in file_paths:
         #read .csv file
         df = pd.read_csv(file)
@@ -41,13 +39,16 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
 
 
     concatenated_df = pd.concat(dfs)
+    print("Data Loaded")
 
+    
+    # DATA VISUALIZATION
     # Sample the data to speed up the visualization
     sample_size = 10000
     random_indices = np.random.choice(concatenated_df.shape[0], sample_size, replace=False)
     sampled_df = concatenated_df.iloc[random_indices]
 
-    #pairplot to visualize relationships between features & labels
+    # pairplot to visualize relationships between features & labels
     features_subset1 = ['back_x', 'back_y', 'back_z']
     features_subset2 = ['thigh_x', 'thigh_y', 'thigh_z']
 
@@ -59,13 +60,12 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
     plt.suptitle('Pair Plot - Features Subset 2', y=1.02)
     plt.show()
 
-    #scatterplot plots for feature - label
+    # scatterplot plots for feature - label
     fig, axes = plt.subplots(2, 3, figsize=(12, 8))
 
     sns.scatterplot(data=sampled_df, x='back_x', y='label', ax=axes[0][0])
     axes[0][1].set_title('back_x')
 
-    
     sns.scatterplot(data=sampled_df, x='back_y', y='label', ax=axes[0][1])
     axes[0][1].set_title('back_y')
 
@@ -75,7 +75,6 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
     sns.scatterplot(data=sampled_df, x='thigh_x', y='label', ax=axes[1][0])
     axes[1][1].set_title('thigh_x')
 
-    
     sns.scatterplot(data=sampled_df, x='thigh_y', y='label', ax=axes[1][1])
     axes[1][1].set_title('thigh_y')
 
@@ -85,6 +84,7 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
     plt.tight_layout()
     plt.show()
 
+    # Violin plots for feature - label
     fig, axes = plt.subplots(2, 3, figsize=(12, 8))
     features = ['back_x', 'back_y', 'back_z', 'thigh_x', 'thigh_y', 'thigh_z']
 
@@ -95,8 +95,7 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
     plt.tight_layout()
     plt.show()
 
-    print('eftasa edw')
-
+    
     # Descriptive analysis
     #count = number of non-null values in each coll
     #mean = average value of each coll
@@ -107,15 +106,11 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
     #75%: third quartile (75th percentile), which separates the lowest 75% of the data from the rest
     #max: maximum value in each coll
         
-    #if file already exists drop it
-    '''
-    if os.path.exists("activity_code_results.txt"):
-        os.remove("activity_code_results.txt")
-    '''
 
     with open('activity_code_results.txt', 'w') as f:
         for i, df in enumerate(dfs):
-
+            
+            print("Processing file:", file_paths[i])
             f.write(f"Descriptive & Statistic analysis for file: {file_paths[i]}\n\n")
             f.write(f"{df.describe()}\n\n")
             f.write(f"{df.groupby('label').agg({'back_x': ['mean', 'std'], 'back_y': ['mean', 'std'], 'back_z': ['mean', 'std'], 'thigh_x': ['mean', 'std'], 'thigh_y': ['mean', 'std'], 'thigh_z': ['mean', 'std']})}\n\n")
@@ -124,52 +119,39 @@ if len(sys.argv) > 1 and sys.argv[1] == '-p' and ask("Do you want to run the pro
             if 'timestamp' in df.columns:
                 df.drop(columns=['timestamp'], inplace=True)
 
-            #get the activities code from feature named "label" from .csv files in order to represent them in the matrices
-            activity_codes = df['label'].unique()
-
 
             #subplots
             fig, axes = plt.subplots(1, 3, figsize=(20, 6))
 
             #correlation between accelerometer readings
             correlation_matrix = df.iloc[:, 1:].corr()
-            sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", xticklabels=activity_codes, yticklabels=activity_codes, ax=axes[0])
+            sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", ax=axes[0])
             axes[0].set_title(f"Accelerometer Readings")
 
             #correlations between mean accelerometer readings and activity code
             mean_correlation = df.groupby('label').mean().corr()
-            sns.heatmap(mean_correlation, annot=True, cmap='coolwarm', fmt=".2f", xticklabels=activity_codes, yticklabels=activity_codes, ax=axes[1])
+            sns.heatmap(mean_correlation, annot=True, cmap='coolwarm', fmt=".2f", ax=axes[1])
             axes[1].set_title(f"Mean Accelerometer Readings by Activity")
 
             #correlations between standard deviation of accelerometer readings and activity code
             std_correlation = df.groupby('label').std().corr()
-            sns.heatmap(std_correlation, annot=True, cmap='coolwarm', fmt=".2f", xticklabels=activity_codes, yticklabels=activity_codes, ax=axes[2])
+            sns.heatmap(std_correlation, annot=True, cmap='coolwarm', fmt=".2f", ax=axes[2])
             axes[2].set_title(f"Standard Deviation of Accelerometer Readings by Activity")
 
             plt.suptitle(f"File: {file_paths[i]}")
             plt.tight_layout()
             plt.show()
-
-
-            #correlations between accelerometer readings and each activity code
-            for activity_code in activity_codes:
-                #filter data for current activity code
-                activity_df = df[df['label'] == activity_code]
-
-                #correlations between accelerometer readings and activity code
-                correlation_matrix = df.corrwith(df['label']).dropna().sort_values(ascending=False)
-            
-                #print current activity code and top features affecting it
-                #used iloc[1:6] to skip the first feature that comes up which is "label" hahaha
-                f.write(f"Activity code: {activity_code}\n")
-                f.write("Top features affecting activity code:\n")
-                f.write(f"{correlation_matrix.iloc[1:6]}\n")
-                f.write("-" * 50 + "\n")
-
-
-            #time.sleep(3);
                 
+            print("File processed successfully")
 
+    
+    
+    # Entire dataset correlation matrix
+    correlation_matrix_full = concatenated_df.iloc[:, 1:].corr()
+    sns.heatmap(correlation_matrix_full, annot=True, cmap='coolwarm', fmt=".2f")
+    plt.title('Correlation Matrix - Entire Dataset')
+    plt.show()
+    
 
 
 
