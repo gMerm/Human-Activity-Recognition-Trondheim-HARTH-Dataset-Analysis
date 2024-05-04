@@ -76,7 +76,7 @@ plt.ylim(concatenated_df['thigh_y'].min() - 1, concatenated_df['thigh_y'].max() 
 plt.show()
 
 plt.figure(figsize=(10, 8))
-plt.scatter(X['thigh_x'], X['thigh_y'], c=gmm_labels, cmap='jet', alpha=0.5)
+plt.scatter(X['back_z'], X['thigh_y'], c=gmm_labels, cmap='jet', alpha=0.5)
 plt.title('Gaussian Mixture Model (GMM) Clustering')
 plt.xlabel('Thigh Accelerometer X')
 plt.ylabel('Thigh Accelerometer Y')
