@@ -1,5 +1,5 @@
 """IMPLEMENTED CLUSTERING ALGORITHMS: k-means, Gaussian Mixture Model (GMM)
-Tried DBSCAN but it did not work well with the available memory, same for aggromerative clustering"""
+Tried DBSCAN but it did not work well with the available memory, same for Agglomerative clustering"""
 
 import pandas as pd
 from sklearn.cluster import KMeans
@@ -8,6 +8,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score, davies_bouldin_score
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import AgglomerativeClustering
+
 
 import sys
 sys.path.append("..")
@@ -38,46 +42,79 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 print("Data Standardized")
 
+# APPLY PCA TO REDUCE THE DIMENSIONALITY
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+print("PCA Complete")
 
 #APPLICATION OF THE ALGORITHMS
-n_clusters=7 # number of clusters
-n_init=10 # number of times the k-means algorithm will be run with different centroid seeds
+# n_init = 10, number of times the k-means algorithm will be run with different centroid seeds
+# k-means
+n_clusters=12            
+n_init=10              
 kmeans = KMeans(n_clusters, n_init=n_init, random_state=42)
-kmeans_labels = kmeans.fit_predict(X_scaled)
+kmeans_labels = kmeans.fit_predict(X_pca)
 print("K-Means Clustering Complete")
 print(f"Centroids: {kmeans.cluster_centers_}")
 print(f"Inertia: {kmeans.inertia_}") 
 print(f"Distance: {kmeans.n_iter_}") 
-print(f"David Bouldin Index: {davies_bouldin_score(X_scaled, kmeans_labels)}") 
-# print("Calculating Silhouette Score")
-# print(f"Silhouette Score: {silhouette_score(X_scaled, kmeans_labels)}")
+print(f"David Bouldin Index: {davies_bouldin_score(X_pca, kmeans_labels)}")
+# print(f"Silhouette Score: {silhouette_score(X_pca, kmeans_labels)}")
 
-# https://scikit-learn.org/stable/modules/mixture.html
-gmm = GaussianMixture(n_components=n_clusters)
-gmm.fit(X_scaled)
-gmm_labels = gmm.predict(X_scaled)
+
+# Gaussian Mixture Model (GMM)
+# covarience_type = "Determines the type of covariance parameters to use in the Gaussian components."
+# tied = all components share the same general covariance matrix
+covariance_type = 'tied'
+tol = 1e-3
+max_iter = 100
+init_params = 'kmeans'
+random_state = 42
+
+gmm = GaussianMixture(n_components=n_clusters,
+                      covariance_type=covariance_type,
+                      tol=tol,
+                      max_iter=max_iter,
+                      init_params=init_params,
+                      random_state=random_state)
+gmm.fit(X_pca)
+gmm_labels = gmm.predict(X_pca)
 print("Gaussian Mixture Model (GMM) Clustering Complete")
-print(f"David Bouldin Index: {davies_bouldin_score(X_scaled, gmm_labels)}") 
-# print(f"Silhouette Score: {silhouette_score(X_scaled, gmm_labels)}") 
-print(f"Bayes Information Criterion: {gmm.bic(X_scaled)}")
+print(f"David Bouldin Index: {davies_bouldin_score(X_pca, gmm_labels)}")
+# print(f"Silhouette Score: {silhouette_score(X_pca, gmm_labels)}")
+
+# DBSCAN - didn't work in our systems because of memory limitations
+"""eps = 0.5
+min_samples = 10
+dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+dbscan_labels = dbscan.fit_predict(X_pca)
+print("DBSCAN Clustering Complete")
+print(f"David Bouldin Index: {davies_bouldin_score(X_pca, dbscan_labels)}") 
+print(f"Silhouette Score: {silhouette_score(X_pca, dbscan_labels)}") """
+
+# Agglomerative Clustering - didn't work in our systems because of memory limitations
+"""agglo = AgglomerativeClustering(n_clusters=n_clusters)
+agglo_labels = agglo.fit_predict(X_pca)
+print("Agglomerative Clustering Complete")
+print(f"David Bouldin Index: {davies_bouldin_score(X_pca, agglo_labels)}")
+print(f"Silhouette Score: {silhouette_score(X_pca, agglo_labels)}") """
 
 
 
 #plots
+# used to have back_z and thigh_y as features
 plt.figure(figsize=(10, 8))
-plt.scatter(concatenated_df['back_z'], concatenated_df['thigh_y'], c=kmeans_labels, cmap='jet', alpha=0.5)
-plt.title('K-Means Clustering')
-plt.xlabel('Thigh Accelerometer X')
-plt.ylabel('Thigh Accelerometer Y')
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=kmeans_labels, cmap='jet', alpha=0.5)
+plt.title('K-Means Clustering (PCA)')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
 plt.colorbar(label='Cluster Label')
-plt.xlim(concatenated_df['back_z'].min() - 1, concatenated_df['back_z'].max() + 1)
-plt.ylim(concatenated_df['thigh_y'].min() - 1, concatenated_df['thigh_y'].max() + 1)
 plt.show()
 
 plt.figure(figsize=(10, 8))
-plt.scatter(X['back_z'], X['thigh_y'], c=gmm_labels, cmap='jet', alpha=0.5)
-plt.title('Gaussian Mixture Model (GMM) Clustering')
-plt.xlabel('Thigh Accelerometer X')
-plt.ylabel('Thigh Accelerometer Y')
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=gmm_labels, cmap='jet', alpha=0.5)
+plt.title('Gaussian Mixture Model Clustering (PCA)')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
 plt.colorbar(label='Cluster Label')
 plt.show()
